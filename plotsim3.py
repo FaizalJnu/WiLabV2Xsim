@@ -5,11 +5,11 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from glob import glob
 
-path = 'mcstrials'
+path = 'mcstrials1k'
 os.makedirs(path, exist_ok=True)
 
 
-def analyze_nrv2x_results(base_dir='/home/faizal/mcsimTrials2'):
+def analyze_nrv2x_results(base_dir='/home/faizal/Documents/work/WiLabV2Xsim/MCSTrials1k'):
     """
     Analyze NR-V2X simulation results, including PRR, packet delay, and other metrics.
     """
@@ -66,6 +66,7 @@ def analyze_nrv2x_results(base_dir='/home/faizal/mcsimTrials2'):
 
     return metrics
 
+
 def plot_metrics(metrics):
     """
     Generate plots for multiple metrics across vehicle densities.
@@ -79,21 +80,34 @@ def plot_metrics(metrics):
         plt.ylabel('Frequency')
         plt.legend()
         plt.grid(True, alpha=0.3)
-        plt.savefig(os.path.join(path,f'{metric_name}_distribution.png'), dpi=300, bbox_inches='tight')
+        plt.savefig(os.path.join(path, f'{metric_name}_distribution.png'), dpi=300, bbox_inches='tight')
         plt.close()
 
     # Boxplots for PRR
-    if 'prr' in metrics:
-        plt.figure()
-        plt.boxplot([metrics['prr'][rho] for rho in sorted(metrics['prr'].keys())],
-                    labels=[f'{rho} vehicles/km' for rho in sorted(metrics['prr'].keys())],
-                    patch_artist=True)
-        plt.title('PRR Distribution by Vehicle Density')
-        plt.ylabel('Packet Reception Ratio (PRR)')
-        plt.xlabel('Vehicle Density')
-        plt.grid(True, alpha=0.3)
-        plt.savefig(os.path.join(path,'prr_boxplot.png'), dpi=300, bbox_inches='tight')
-        plt.close()
+    # if 'prr' in metrics:
+    #     plt.figure()
+    #     plt.boxplot([metrics['prr'][rho] for rho in sorted(metrics['prr'].keys())],
+    #                 labels=[f'{rho} vehicles/km' for rho in sorted(metrics['prr'].keys())],
+    #                 patch_artist=True)
+    #     plt.title('PRR Distribution by Vehicle Density')
+    #     plt.ylabel('Packet Reception Ratio (PRR)')
+    #     plt.xlabel('Vehicle Density')
+    #     plt.grid(True, alpha=0.3)
+    #     plt.savefig(os.path.join(path, 'prr_boxplot.png'), dpi=300, bbox_inches='tight')
+    #     plt.close()
+
+    # Plot PRR across trials
+    plt.figure(figsize=(12,6))
+    for rho in [100, 200, 300]:
+        plt.plot(range(len(metrics['prr'][rho])), metrics['prr'][rho], label=f'rho={rho}')
+    plt.title('PRR Across Trials')
+    plt.xlabel('Trial Index')
+    plt.ylabel('PRR')
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+    plt.savefig(os.path.join(path, 'prr_across_trials.png'), dpi=300, bbox_inches='tight')
+    plt.close()
+
 
 def main():
     print("Analyzing NR-V2X simulation results...")
@@ -101,6 +115,7 @@ def main():
     print("Creating visualizations...")
     plot_metrics(metrics)
     print("Analysis complete. Plots have been saved.")
+
 
 if __name__ == "__main__":
     main()
