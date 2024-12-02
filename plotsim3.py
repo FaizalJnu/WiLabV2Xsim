@@ -71,42 +71,37 @@ def plot_metrics(metrics):
     """
     Generate plots for multiple metrics across vehicle densities.
     """
+    # Mapping for descriptive x-axis labels
+    x_labels = {
+        'prr': 'Packet Reception Ratio (Probability)',
+        'delay': 'Packet Delay (Seconds)',
+        'blind_spot': 'Wireless Blind Spot Coverage (Normalized)'
+    }
+
     for metric_name, data in metrics.items():
         plt.figure()
         for rho, values in data.items():
             sns.histplot(values, kde=True, label=f'{rho} vehicles/km', alpha=0.5)
         plt.title(f'{metric_name.upper()} Distribution by Vehicle Density')
-        plt.xlabel(f'{metric_name.upper()}')
+        plt.xlabel(x_labels.get(metric_name, metric_name.upper()))  # Use descriptive label if available
         plt.ylabel('Frequency')
         plt.legend()
         plt.grid(True, alpha=0.3)
         plt.savefig(os.path.join(path, f'{metric_name}_distribution.png'), dpi=300, bbox_inches='tight')
         plt.close()
 
-    # Boxplots for PRR
-    # if 'prr' in metrics:
-    #     plt.figure()
-    #     plt.boxplot([metrics['prr'][rho] for rho in sorted(metrics['prr'].keys())],
-    #                 labels=[f'{rho} vehicles/km' for rho in sorted(metrics['prr'].keys())],
-    #                 patch_artist=True)
-    #     plt.title('PRR Distribution by Vehicle Density')
-    #     plt.ylabel('Packet Reception Ratio (PRR)')
-    #     plt.xlabel('Vehicle Density')
-    #     plt.grid(True, alpha=0.3)
-    #     plt.savefig(os.path.join(path, 'prr_boxplot.png'), dpi=300, bbox_inches='tight')
-    #     plt.close()
-
-    # Plot PRR across trials
+    # PRR across trials
     plt.figure(figsize=(12,6))
     for rho in [100, 200, 300]:
         plt.plot(range(len(metrics['prr'][rho])), metrics['prr'][rho], label=f'rho={rho}')
     plt.title('PRR Across Trials')
     plt.xlabel('Trial Index')
-    plt.ylabel('PRR')
+    plt.ylabel('Packet Reception Ratio (PRR)')
     plt.legend()
     plt.grid(True, alpha=0.3)
     plt.savefig(os.path.join(path, 'prr_across_trials.png'), dpi=300, bbox_inches='tight')
     plt.close()
+
 
 
 def main():
