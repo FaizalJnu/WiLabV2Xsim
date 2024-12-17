@@ -36,7 +36,7 @@ parpool('local', 6);
 
 % Adaptive MCS function based on SINR1
 function mcs = getAdaptiveMCS(sinr)
-    Define MCS mapping based on SINR thresholds
+    % Define MCS mapping based on SINR thresholds
     if sinr > 20
         % Good channel conditions
         mcs = 12;  % Example: QAM 64 with high coding rate
