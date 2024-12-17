@@ -35,46 +35,46 @@ PRR_results = gpuArray.zeros(numTrials, length(rhoValues));
 parpool('local', 6);
 
 % Adaptive MCS function based on SINR1
-% function mcs = getAdaptiveMCS(sinr)
-%     Define MCS mapping based on SINR thresholds
-%     if sinr > 20
-%         % Good channel conditions
-%         mcs = 12;  % Example: QAM 64 with high coding rate
-%     elseif sinr > 15
-%         % Slightly lower but still good conditions
-%         mcs = 11;  % Example: QAM 64 with moderate coding rate
-%     elseif sinr > 10
-%         % Medium channel conditions
-%         mcs = randi([7, 10]);  % Randomly select from QAM 16 to QAM 64
-%     elseif sinr > 5
-%         % Poor channel conditions but still usable
-%         mcs = randi([3, 6]);    % Randomly select from QPSK to QAM 16
-%     else
-%         % Very poor channel conditions
-%         mcs = 11;                % Example: QPSK with low coding rate
-%     end
+function mcs = getAdaptiveMCS(sinr)
+    Define MCS mapping based on SINR thresholds
+    if sinr > 20
+        % Good channel conditions
+        mcs = 12;  % Example: QAM 64 with high coding rate
+    elseif sinr > 15
+        % Slightly lower but still good conditions
+        mcs = 11;  % Example: QAM 64 with moderate coding rate
+    elseif sinr > 10
+        % Medium channel conditions
+        mcs = randi([7, 10]);  % Randomly select from QAM 16 to QAM 64
+    elseif sinr > 5
+        % Poor channel conditions but still usable
+        mcs = randi([3, 6]);    % Randomly select from QPSK to QAM 16
+    else
+        % Very poor channel conditions
+        mcs = 2;                % Example: QPSK with low coding rate
+    end
     
-%     % Optional: Add error handling for unexpected SINR values
-%     if isnan(sinr) || sinr < -10 || sinr > 30
-%         error('Invalid SINR value: %f', sinr);
-%     end
-% end
+    % Optional: Add error handling for unexpected SINR values
+    if isnan(sinr) || sinr < -10 || sinr > 30
+        error('Invalid SINR value: %f', sinr);
+    end
+end
 
-% % % Function to calculate path loss with shadowing and fast fading
-% function [pathLoss, shadowingLoss, fadingLoss] = calculateChannelLoss(distance, shadowingStdDev, fastFadingType)
-%     % Basic path loss (simplified free space)
-%     pathLoss = 32.4 + 20*log10(distance) + 20*log10(5.9);  % 5.9 GHz frequency
+% % Function to calculate path loss with shadowing and fast fading
+function [pathLoss, shadowingLoss, fadingLoss] = calculateChannelLoss(distance, shadowingStdDev, fastFadingType)
+    % Basic path loss (simplified free space)
+    pathLoss = 32.4 + 20*log10(distance) + 20*log10(5.9);  % 5.9 GHz frequency
     
-%     % Log-normal shadowing
-%     shadowingLoss = shadowingStdDev * randn();
+    % Log-normal shadowing
+    shadowingLoss = shadowingStdDev * randn();
     
-%     % Fast fading
-%     if strcmp(fastFadingType, 'Rayleigh')
-%         fadingLoss = -10*log10(exprnd(1));
-%     else  % Rician
-%         fadingLoss = -10*log10(ricernd(ricianKFactor, 1));
-%     end
-% end
+    % Fast fading
+    if strcmp(fastFadingType, 'Rayleigh')
+        fadingLoss = -10*log10(exprnd(1));
+    else  % Rician
+        fadingLoss = -10*log10(ricernd(ricianKFactor, 1));
+    end
+end
 
 % NR-V2X simulation for Monte Carlo trials
 parfor trial = 1:numTrials
@@ -83,11 +83,11 @@ parfor trial = 1:numTrials
     % Initialize a temporary variable to store results for each density in this trial
     prr_trial = zeros(1, length(rhoValues));
 
-    if BandMHz == 10
-        MCS = 11;
-    elseif BandMHz == 20
-        MCS = 5;
-    end
+    % if BandMHz == 10
+    %     MCS = 11;
+    % elseif BandMHz == 20
+    %     MCS = 5;
+    % end
     
     for rhoIdx = 1:length(rhoValues)
         rho = rhoValues(rhoIdx);  % Vehicle density
@@ -103,16 +103,16 @@ parfor trial = 1:numTrials
         end
         
         % Dynamic SINR calculation for adaptive MCS
-        % distance = rand() * roadLength; % Randomized distance on the road
-        % [pathLoss, shadowingLoss, fadingLoss] = calculateChannelLoss(distance, shadowingStdDev, fastFadingType);
-        % sinr = 20 - pathLoss - shadowingLoss - fadingLoss;
+        distance = rand() * roadLength; % Randomized distance on the road
+        [pathLoss, shadowingLoss, fadingLoss] = calculateChannelLoss(distance, shadowingStdDev, fastFadingType);
+        sinr = 20 - pathLoss - shadowingLoss - fadingLoss;
         
-        % if sinr < -10
-        %     sinr = -10
-        % elseif sinr > 30
-        %     sinr = 30
-        % end
-        % MCS = getAdaptiveMCS(sinr); % Get MCS based on calculated SINR
+        if sinr < -10
+            sinr = -10
+        elseif sinr > 30
+            sinr = 30
+        end
+        MCS = getAdaptiveMCS(sinr); % Get MCS based on calculated SINR
         
         % Dynamic speed during simulation
         currentSpeed = max(0, speed + speedStDev * randn() + maxSpeedVar * sin(2 * pi * rand()));
