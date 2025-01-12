@@ -3,18 +3,18 @@ clear        % Reset variables
 clc          % Clear the command window
 
 % Parameters
-packetSize = 1;          % Packet size in bytes
+packetSize = 500;          % Packet size in bytes
 nTransm = 1;                % Number of transmissions per packet
-sizeSubchannel = 100;        % Number of Resource Blocks for each subchannel
+sizeSubchannel = 50;        % Number of Resource Blocks for each subchannel
 Raw = [50, 150, 300];       % Range of Awareness for evaluation of metrics
 speed = 50;                 % Average speed [km/h]
 speedStDev = 3;            % Speed standard deviation
 maxSpeedVar = 2;           % Maximum speed variation
-SCS = 60;                   % Subcarrier spacing [kHz]
+SCS = 15;                   % Subcarrier spacing [kHz]
 pKeep = 0.4;                % Keep probability for resource re-selection
 periodicity = 0.1;          % Generation interval (every 100 ms)
 sensingThreshold = -70;    % Threshold to detect resources as busy
-roadLength = 5000;          % Length of the road [m]
+roadLength = 10000;          % Length of the road [m]
 configFile = 'Highway3GPP.cfg';
 
 % Channel parameters
@@ -24,15 +24,19 @@ ricianKFactor = 3;          % Rician K-factor for LOS scenarios
 correlationDistance = 50;   % Correlation distance for shadowing 
 
 % Monte Carlo parameters
-numTrials = 100;          % Number of Monte Carlo trials
+numTrials = 10000;          % Number of Monte Carlo trials
 rhoValues = [100, 200, 300]; % Vehicle densities
 BandMHz = 20;               % Bandwidth in MHz
 
 % Initialize results storage (using GPU array for acceleration)
-PRR_results = gpuArray.zeros(numTrials, length(rhoValues));
+PRR_results = zeros(numTrials, length(rhoValues));
 
-% Set up parallel pool with 6 workers (adjust if needed)
-parpool('local', 6);
+% Setting up parallel pool
+poolObj = gcp('nocreate');
+if isempty(poolObj)
+    poolObj = parpool('local', 10);
+end
+cleanupObj = onCleanup(@() delete(poolObj)); % Will delete pool even if script crashes
 
 % Adaptive MCS function based on SINR1
 function mcs = getAdaptiveMCS(sinr)
@@ -154,6 +158,7 @@ parfor trial = 1:numTrials
     % Store trial results in PRR_results array
     PRR_results(trial, :) = prr_trial;  
 end
+delete(gcp('nocreate'));
 
 % Gather results from GPU to CPU
 PRR_results = gather(PRR_results);
@@ -190,5 +195,3 @@ xlabel('Vehicle Density');
 ylabel('PRR Distribution');
 title('PRR Distribution by Vehicle Density');
 
-% Shut down the parallel pool
-delete(gcp('nocreate'));
